@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  labels:
+    run: db
+spec:
+  ports:
+  - port: 3306
+    name: db
+  selector:
+    run: db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-mobility
+  labels:
+    run: db
+spec:
+  selector:
+    matchLabels:
+      run: db
+  serviceName: "db"
+  template:
+    metadata:
+      generateName: db-mobility
+      labels:
+        run: db
+    spec:
+      initContainers:
+        - name: "remove-lost-found"
+          image: "busybox:1.25.0"
+          imagePullPolicy: "IfNotPresent"
+          command:  ["rm", "-fr", "/var/lib/mysql/lost+found"]
+          volumeMounts:
+          - name: mysql-data
+            mountPath: /var/lib/mysql 
+        - name: "sql-dump"
+          image: "busybox:1.25.0"
+          command:
+            [
+              "wget",
+              "--no-check-certificate",
+              "https://github.com/igncarrillo/tele24/blob/ic/caso3/db/dump.sql",
+              "-O",
+              "/docker-entrypoint-initdb.d/dump.sql",
+            ]
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d
+              name: db-sql
+      containers:
+        - name: db-mobility
+          image: mysql:5.7
+          imagePullPolicy: Always
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: db-password
+          ports:
+            - name: db
+              containerPort: 3306
+          volumeMounts:
+            - mountPath: "/var/lib/mysql"
+              name: mysql-data
+      volumes:
+        - name: secret-volume
+          secret:
+            secretName: db-secret
+
+        - configMap: 
+            name: db-config
+        
+        - name: dump
+          emptyDir: {}
+  volumeClaimTemplates:
+   - metadata:
+       name: mysql-data
+     spec:
+       accessModes: [ "ReadWriteOnce" ]
+       #storageClassName: "openebs-standalone"
+       resources:
+         requests:
+           storage: 1Gi
