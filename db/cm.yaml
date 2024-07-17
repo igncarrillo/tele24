@@ -1,7 +1,0 @@
-apiVersion: v1
-data:
-  MYSQL_DATABASE: "google"
-kind: ConfigMap
-metadata:
-  creationTimestamp: null
-  name: db-sql
