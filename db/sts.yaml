@@ -32,12 +32,12 @@ spec:
         - name: "remove-lost-found"
           image: "busybox:1.25.0"
           imagePullPolicy: "IfNotPresent"
-          command: [ "rm", "-fr", "/var/lib/mysql/lost+found" ]
+          command:  ["rm", "-fr", "/var/lib/mysql/lost+found"]
           volumeMounts:
             - name: mysql-data
               mountPath: /var/lib/mysql
         - name: "sql-dump"
-          image: "busybox:1.25.0"
+          image: "alpine:latest"
           command:
             [
               "wget",
@@ -48,7 +48,7 @@ spec:
             ]
           volumeMounts:
             - mountPath: /docker-entrypoint-initdb.d
-              name: db-sql
+              name: dump
       containers:
         - name: db-mobility
           image: mysql:5.7
@@ -68,8 +68,10 @@ spec:
             - name: db
               containerPort: 3306
           volumeMounts:
-            - mountPath: "/var/lib/mysql"
-              name: mysql-data
+            - name: mysql-data
+              mountPath: "/var/lib/mysql"    
+            - name: dump
+              mountPath: /docker-entrypoint-initdb.d            
       volumes:
         - name: secret-volume
           secret:
