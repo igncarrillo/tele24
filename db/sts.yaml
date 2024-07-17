@@ -6,8 +6,8 @@ metadata:
     run: db
 spec:
   ports:
-  - port: 3306
-    name: db
+    - port: 3306
+      name: db
   selector:
     run: db
 ---
@@ -32,10 +32,10 @@ spec:
         - name: "remove-lost-found"
           image: "busybox:1.25.0"
           imagePullPolicy: "IfNotPresent"
-          command:  ["rm", "-fr", "/var/lib/mysql/lost+found"]
+          command: [ "rm", "-fr", "/var/lib/mysql/lost+found" ]
           volumeMounts:
-          - name: mysql-data
-            mountPath: /var/lib/mysql 
+            - name: mysql-data
+              mountPath: /var/lib/mysql
         - name: "sql-dump"
           image: "busybox:1.25.0"
           command:
@@ -70,17 +70,19 @@ spec:
           secret:
             secretName: db-secret
 
-        - configMap: 
-            name: db-config
-        
+        - name: config-volume
+          configMap:
+            name: db-sql
+
         - name: dump
-          emptyDir: {}
+          emptyDir: { }
+
   volumeClaimTemplates:
-   - metadata:
-       name: mysql-data
-     spec:
-       accessModes: [ "ReadWriteOnce" ]
-       #storageClassName: "openebs-standalone"
-       resources:
-         requests:
-           storage: 1Gi
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        #storageClassName: "openebs-standalone"
+        resources:
+          requests:
+            storage: 1Gi
