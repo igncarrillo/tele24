@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: nginx
+  name: metabase-ingress
+spec:
+  rules:
+  - host: gicarrillo-metabase.my.kube.um.edu.ar
+    http:
+      paths:
+      - backend:
+          service:
+            name: metabase-svc
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix

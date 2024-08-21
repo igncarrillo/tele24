@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metabase
+  labels:
+    app: metabase
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metabase
+  template:
+    metadata:
+      generateName: metabase
+      labels:
+        app: metabase
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: metabase
+          image: metabase/metabase
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - name: metabase
+              containerPort: 3000
+          env:
+            - name: MB_DB_TYPE
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-secrets
+                  key: db-type
+            - name: MB_DB_DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-secrets
+                  key: db-dbname
+            - name: MB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-secrets
+                  key: db-pass
+            - name: MB_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-secrets
+                  key: db-user
+            - name: MB_DB_HOST
+              value: db
